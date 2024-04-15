@@ -21,10 +21,8 @@ export const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Make API call to login user
     try {
-      // Replace this with actual API endpoint and request
-      const response = await fetch("your-backend-api-url/login", {
+      const response = await fetch("http://localhost:3001/api/user/v1/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -32,15 +30,14 @@ export const LoginPage = () => {
         body: JSON.stringify({ email, password }),
       });
 
-      if (response.ok) {
-        // If successful response, perform further actions like redirecting to dashboard
+      if (response.status === 200) {
+        sessionStorage.setItem("email", email);
         console.log("User logged in successfully");
       } else {
-        // Handle error response
-        console.error("Failed to login:", response.statusText);
+        alert("Failed to login:", response.statusText);
       }
     } catch (error) {
-      console.error("Failed to login:", error.message);
+      alert("Failed to login:", error.message);
     }
 
     setEmail("");
@@ -183,7 +180,7 @@ export const LoginPage = () => {
             >
               <span>
                 Don't have an Account? &nbsp;
-                <a href="/signup" style={{ color: "#000", cursor: "pointer" }}>
+                <a href="/" style={{ color: "#000", cursor: "pointer" }}>
                   SIGN UP
                 </a>
               </span>

@@ -1,10 +1,14 @@
-import React, { useState } from "react";
-import Sweetpagination from "sweetpagination";
+import React, { useEffect, useState } from "react";
 import Navbar from "../navbar";
+import classnames from "classnames";
 
 export const CategoriesPage = () => {
-  const [currentPageData, setCurrentPageData] = useState(Array(40).fill(false)); // Initialize all checkboxes as unchecked
-  const [selectedItems, setSelectedItems] = useState([]); // Array to store selected items
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+  const totalItems = 40; 
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  const [selectedItems, setSelectedItems] = useState([]); 
   const items = [
     "Shirt",
     "Pants",
@@ -50,36 +54,62 @@ export const CategoriesPage = () => {
     "HandbagTwo",
   ];
 
-  // const handleCheckboxChange = (index) => {
-  //   const updatedData = [...currentPageData];
-  //   updatedData[index] = !updatedData[index];
+useEffect(() => {
+  const userEmail = sessionStorage.getItem("email");
+  if (userEmail) {
+    fetchInterests(userEmail);
+  }
+}, []);
+
+const fetchInterests = async (userEmail) => {
+  try {
+    const response = await fetch(
+      `http://localhost:3001/api/user/v1/interest?email=${userEmail}`,
+      { method: "GET" }
+    );
+    if (response.status === 200) {
+      const data = await response.json();
+      setSelectedItems(data.data || []);
+    } else {
+      throw new Error("Failed to fetch user interests");
+    }
+  } catch (error) {
+    alert("Failed to fetch user interests: " + error.message); 
+  }
+};
+  const handleCheckboxChange = (index) => {
+    const selectedItem = items[index];
+    if (selectedItems.includes(selectedItem)) {
+      setSelectedItems((prevItems) =>
+        prevItems.filter((item) => item !== selectedItem)
+      );
+    } else {
+      setSelectedItems((prevItems) => [...prevItems, selectedItem]);
+    }
+
+    const email = sessionStorage.getItem("email");
+    fetch("http://localhost:3001/api/user/v1/interest", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, interests: selectedItems }),
+    })
+      .then((response) => {
+        if (!response.status === 200) {
+          throw new Error("Failed to update selected items");
+        }
+      })
+      .catch((error) => {
+        alert("Error updating selected items:", error.message);
+      });
+  };
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
 
 
-  //   const selectedItem = items[index];
-  //   if (updatedData[index]) {
-  //     setSelectedItems((prevItems) => [...prevItems, selectedItem]);
-  //   } else {
-  //     setSelectedItems((prevItems) =>
-  //       prevItems.filter((item) => item !== selectedItem)
-  //     );
-  //   }
 
-  //   fetch("your-backend-api-url/updateSelectedItems", {
-  //     method: "POST",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //     },
-  //     body: JSON.stringify({ selectedItems }),
-  //   })
-  //     .then((response) => {
-  //       if (!response.ok) {
-  //         throw new Error("Failed to update selected items");
-  //       }
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error updating selected items:", error.message);
-  //     });
-  // };
 
   return (
     <>
@@ -119,7 +149,7 @@ export const CategoriesPage = () => {
           </h5>
 
           <div style={{ display: "flex", flexDirection: "column" }}>
-            {currentPageData.map((isChecked, index) => (
+            {items.slice(startIndex, endIndex).map((item, index) => (
               <div
                 key={index}
                 style={{
@@ -133,20 +163,38 @@ export const CategoriesPage = () => {
                 <input
                   type="checkbox"
                   name="shoppingItem"
-                  checked={isChecked}
-                  // onChange={() => handleCheckboxChange(index)}
+                  checked={selectedItems.includes(item)}
+                  onChange={() => handleCheckboxChange(index + startIndex)}
                   style={{ height: "20px", width: "20px" }}
                 />
-                <label>{items[index]}</label>
+                <label
+                  className={classnames({
+                    "selected-item": selectedItems.includes(item),
+                    "not-selected-item": !selectedItems.includes(item),
+                  })}
+                >
+                  {item}
+                </label>
               </div>
             ))}
-            <Sweetpagination
-              currentPageData={setCurrentPageData}
-              getData={items}
-              dataPerPage={6}
-              // navigation={true}
-              getStyle={"style-4"}
-            />
+          </div>
+
+          <div style={{ marginTop: "20px" }}>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentPage(i + 1)}
+                style={{
+                  margin: "0 5px",
+                  padding: "5px 10px",
+                  cursor: "pointer",
+                  backgroundColor:
+                    currentPage === i + 1 ? "#ccc" : "black",
+                }}
+              >
+                {i + 1}
+              </button>
+            ))}
           </div>
         </div>
       </div>

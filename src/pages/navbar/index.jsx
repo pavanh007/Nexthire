@@ -22,7 +22,7 @@ const Navbar = () => {
             color: "#000",
           }}
         >
-          <a href="/login" style={{ color: "#000" }}>
+          <a href="/" style={{ color: "#000" }}>
             <h3>ECOMMERCE</h3>
           </a>
         </div>

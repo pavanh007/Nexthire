@@ -3,11 +3,11 @@ import Navbar from "../navbar";
 import OtpInput from "react-otp-input";
 
 export const SignUpPage = () => {
-  const [email, setEmail] = useState("testing@gmail.com");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [otp, setOtp] = useState("");
-  const [showOtpInput, setShowOtpInput] = useState(true); 
+  const [showOtpInput, setShowOtpInput] = useState(false); 
   const maskedEmail = `${"***"}${email.slice(3)}`;
 
   const handleEmailChange = (e) => {
@@ -24,47 +24,46 @@ export const SignUpPage = () => {
   const CreateUser = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("your-backend-api-url/signup", {
+      const response = await fetch("http://localhost:3001/api/user/v1/signin", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({name, email, password }),
       });
 
-      if (response.ok) {
-        
+      if (response.status == 200) {
+        sessionStorage.setItem("email", email);
         setShowOtpInput(true);
       } else {
-        
-        console.error("Failed to register user:", response.statusText);
+        alert("Failed to register user:", response);
       }
     } catch (error) {
-      console.error("Failed to register user:", error.message);
+      alert("Failed to register user:", error.message);
     }
   };
 
   const handleOtpSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
     
-      const response = await fetch("your-backend-api-url/verify-otp", {
+    try {
+      const email = sessionStorage.getItem("email");
+      console.log(email, otp);
+      const response = await fetch("http://localhost:3001/api/user/v1/verify", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ otp }),
+        body: JSON.stringify({ email, otp }),
       });
-
-      if (response.ok) {
+      console.log("response", response);
+      if (response.status === 200) {
         console.log("OTP verified successfully");
         window.location.href = "/interest"
       } else {
-        console.error("Failed to verify OTP:", response.statusText);
+        alert("Failed to verify OTP:", response);
       }
     } catch (error) {
-      console.error("Failed to verify OTP:", error.message);
+      alert("Failed to verify OTP:", error.message);
     }
   };
 
